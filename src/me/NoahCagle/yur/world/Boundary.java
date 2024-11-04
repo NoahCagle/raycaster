@@ -1,5 +1,6 @@
 package me.NoahCagle.yur.world;
 
+import me.NoahCagle.yur.Game;
 import me.NoahCagle.yur.graphics.Screen;
 
 public class Boundary {
@@ -18,8 +19,10 @@ public class Boundary {
 		return col;
 	}
 	
-	public void draw(Screen screen) {
-		screen.drawLine(startX, startY, endX, endY, col);
+	public void draw(Screen screen, int playerX, int playerY) {
+		int px = playerX - (Game.width / 2);
+		int py = playerY - (Game.height / 2);
+		screen.drawLine(startX - px, startY - py, endX - px, endY - py, col);
 	}
 
 }

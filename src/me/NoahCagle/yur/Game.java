@@ -12,14 +12,16 @@ import javax.swing.JFrame;
 import me.NoahCagle.yur.graphics.Game3D;
 import me.NoahCagle.yur.graphics.Screen;
 import me.NoahCagle.yur.input.InputListener;
+import me.NoahCagle.yur.logic.Point;
 import me.NoahCagle.yur.world.Boundary;
 import me.NoahCagle.yur.world.Ray;
+import me.NoahCagle.yur.world.World;
 
 public class Game extends Canvas implements Runnable {
 	private static final long serialVersionUID = 1L;
 
-	public int width = 450;
-	public int height = 350;
+	public static int width = 450;
+	public static int height = 350;
 	public int scale = 1;
 
 	private boolean running = false;
@@ -31,7 +33,7 @@ public class Game extends Canvas implements Runnable {
 	private Screen screen;
 
 	private Ray[] rays;
-	private Boundary[] boundaries;
+	private World world;
 
 	private int camDir = 250;
 	private int playerStartX = width / 2;
@@ -51,23 +53,18 @@ public class Game extends Canvas implements Runnable {
 		addKeyListener(input);
 		addMouseMotionListener(input);
 
-		int rayScope = 90;
+		int fov = 60;
+		// One ray for each pixel width
 		double numRays = width;
 
 		rays = new Ray[(int) numRays];
-		double angleInterval = 90 / numRays;
+		double angleInterval = fov / numRays;
 
 		for (int i = 0; i < rays.length; i++) {
-			System.out.println(i * angleInterval);
 			rays[(int) i] = new Ray(playerStartX, playerStartY, i * angleInterval, camDir);
 		}
 
-		boundaries = new Boundary[] { new Boundary(width / 4, height / 5, width - (width / 4), height / 4, 0x00ff00),
-				new Boundary(width / 4, height / 2 + 50, width / 2 - 30, height / 4 + 70, 0xff0000),
-				new Boundary(width - (width / 2 - 30), height / 4 + 20, width - (width / 4), height / 2, 0x0000ff),
-				new Boundary(10, 10, width - 10, 10, 0xffffff), new Boundary(10, 10, 10, height - 10, 0xffffff),
-				new Boundary(10, height - 10, width - 10, height - 10, 0xffffff),
-				new Boundary(width - 10, height - 10, width - 10, 10, 0xffffff) };
+		world = new World();
 
 		create3d();
 
@@ -174,12 +171,12 @@ public class Game extends Canvas implements Runnable {
 		screen.clear();
 
 		for (Ray r : rays) {
-			r.draw(screen);
-			r.detectIntersection(boundaries);
+			r.draw(screen, (int) playerX, (int) playerY);
+			r.detectIntersection(world.getBoundaries());
 		}
 
-		for (Boundary b : boundaries) {
-			b.draw(screen);
+		for (Boundary b : world.getBoundaries()) {
+			b.draw(screen, (int) playerX, (int) playerY);
 		}
 
 		screen.sync(pixels);
@@ -205,7 +202,7 @@ public class Game extends Canvas implements Runnable {
 	}
 
 	private void create3d() {
-		Game3D game = new Game3D(width, height, 2, rays);
+		Game3D game = new Game3D(width, height, 2, rays, input);
 		JFrame frame = new JFrame();
 		frame.add(game);
 		frame.pack();
@@ -218,6 +215,8 @@ public class Game extends Canvas implements Runnable {
 
 	}
 
+	int speed = 2;
+
 	private void movePlayer(int xDir, int yDir) {
 		double forwardAngle = Math.toRadians(camDir + 45);
 		double strafeAngle = Math.toRadians(camDir - 45);
@@ -228,8 +227,8 @@ public class Game extends Canvas implements Runnable {
 		double strafeXDir = Math.cos(strafeAngle) * xDir;
 		double strafeYDir = Math.sin(strafeAngle) * xDir;
 
-		playerX += strafeXDir + forwardXDir;
-		playerY += strafeYDir + forwardYDir;
+		playerX += (strafeXDir + forwardXDir) * speed;
+		playerY += (strafeYDir + forwardYDir) * speed;
 
 	}
 

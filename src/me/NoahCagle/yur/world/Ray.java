@@ -3,6 +3,7 @@ package me.NoahCagle.yur.world;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.NoahCagle.yur.Game;
 import me.NoahCagle.yur.graphics.Screen;
 import me.NoahCagle.yur.logic.Intersection;
 import me.NoahCagle.yur.logic.Point;
@@ -16,8 +17,8 @@ public class Ray {
 	private double angle;
 	private int camDir;
 
-	public int rayLength = 300;
-	
+	public static int rayLength = 1000;
+
 	private Intersection intersection;
 
 	public Ray(int x, int y, double angle, int camDir) {
@@ -46,7 +47,7 @@ public class Ray {
 
 	// Using 'Given two points on each line segment' from
 	// https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-	public void detectIntersection(Boundary[] boundaries) {
+	public void detectIntersection(List<Boundary> boundaries) {
 		List<Intersection> intersections = new ArrayList<Intersection>();
 
 		for (Boundary b : boundaries) {
@@ -79,25 +80,30 @@ public class Ray {
 				}
 			}
 		}
-		
+
 		if (intersections.size() == 0) {
 			intersecting = false;
 		} else {
 			intersecting = true;
-			
+
 			if (intersections.size() == 1) {
 				Intersection i = intersections.get(0);
-				double dist = Math.abs(Math.sqrt(Math.pow(x - i.getPoint().getX(), 2) + Math.pow(y - i.getPoint().getY(), 2)));
+				double a = x - i.getPoint().getX();
+				double b = y - i.getPoint().getY();
+				double c = Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
+				double dist = c;
+				
 				i.setDistance(dist);
 				intersection = i;
+				
 			} else {
 				intersection = findClosest(intersections);
 			}
-			
+
 		}
 
 	}
-	
+
 	public Intersection getIntersection() {
 		return intersection;
 	}
@@ -106,14 +112,18 @@ public class Ray {
 		this.x = x;
 		this.y = y;
 	}
-	
+
 	private Intersection findClosest(List<Intersection> intersections) {
 		Intersection ret = null;
 		double tempDistance = 0;
-		
+
 		for (Intersection i : intersections) {
-			// Uses x^2 + y^2 = c^2, finds the absolute value of c
-			double dist = Math.abs(Math.sqrt(Math.pow(x - i.getPoint().getX(), 2) + Math.pow(y - i.getPoint().getY(), 2)));
+			// Uses a^2 + b^2 = c^2, finds c
+			double a = x - i.getPoint().getX();
+			double b = y - i.getPoint().getY();
+			double c = Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
+			double dist = c;
+			
 			if (ret != null) {
 				if (dist < tempDistance) {
 					ret = i;
@@ -124,23 +134,24 @@ public class Ray {
 				tempDistance = dist;
 			}
 		}
-		
+
 		ret.setDistance(tempDistance);
-		
+
 		return ret;
 	}
-	
+
 	public boolean isIntersecting() {
 		return intersecting;
 	}
 
-	public void draw(Screen screen) {
-
+	public void draw(Screen screen, int playerX, int playerY) {
+		int px = playerX - (Game.width / 2);
+		int py = playerY - (Game.height / 2);
 		if (intersecting) {
-			screen.drawLine(x, y, intersection.getPoint().getX(), intersection.getPoint().getY(), 0xff0000);
-			screen.drawPoint(intersection.getPoint().getX(), intersection.getPoint().getY(), 0x0000ff);
+			screen.drawLine(x - px, y - py, intersection.getPoint().getX() - px, intersection.getPoint().getY() - py, 0xff0000);
+			//screen.drawPoint(intersection.getPoint().getX(), intersection.getPoint().getY(), 0x0000ff);
 		} else {
-			screen.drawLine(x, y, (int) (x + endX), (int) (y + endY), 0xff0000);
+			screen.drawLine(x - px, y - py, (int) (x + endX) - px, (int) (y + endY) - py, 0xff0000);
 		}
 
 	}
