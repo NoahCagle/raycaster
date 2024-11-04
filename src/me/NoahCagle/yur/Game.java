@@ -12,7 +12,6 @@ import javax.swing.JFrame;
 import me.NoahCagle.yur.graphics.Game3D;
 import me.NoahCagle.yur.graphics.Screen;
 import me.NoahCagle.yur.input.InputListener;
-import me.NoahCagle.yur.logic.Point;
 import me.NoahCagle.yur.world.Boundary;
 import me.NoahCagle.yur.world.Ray;
 import me.NoahCagle.yur.world.World;
@@ -20,9 +19,9 @@ import me.NoahCagle.yur.world.World;
 public class Game extends Canvas implements Runnable {
 	private static final long serialVersionUID = 1L;
 
-	public static int width = 450;
-	public static int height = 350;
-	public int scale = 1;
+	public static int width = 320;
+	public static int height = 320;
+	public int scale = 2;
 
 	private boolean running = false;
 	private Thread thread;
@@ -36,15 +35,16 @@ public class Game extends Canvas implements Runnable {
 	private World world;
 
 	private int camDir = 250;
-	private int playerStartX = width / 2;
-	private int playerStartY = height / 2;
+	private double playerX, playerY;
+	private int playerStartX, playerStartY;
+	private int playerSpeedFactor = 3;
 
 	private InputListener input;
 
 	private Game3D game3D;
 
 	public Game() {
-		Dimension size = new Dimension(width * scale, height * scale);
+		Dimension size = new Dimension(width, height);
 		setPreferredSize(size);
 
 		screen = new Screen(width, height);
@@ -53,7 +53,17 @@ public class Game extends Canvas implements Runnable {
 		addKeyListener(input);
 		addMouseMotionListener(input);
 
-		int fov = 60;
+		world = new World();
+
+		playerStartX = (world.getWidth() * World.blockSize) / 2;
+		playerStartY = (world.getHeight() * World.blockSize) / 2;
+		
+		playerX = playerStartX;
+		playerY = playerStartY;
+		
+		System.out.println(playerStartX);
+
+		int fov = 45;
 		// One ray for each pixel width
 		double numRays = width;
 
@@ -63,8 +73,6 @@ public class Game extends Canvas implements Runnable {
 		for (int i = 0; i < rays.length; i++) {
 			rays[(int) i] = new Ray(playerStartX, playerStartY, i * angleInterval, camDir);
 		}
-
-		world = new World();
 
 		create3d();
 
@@ -126,9 +134,6 @@ public class Game extends Canvas implements Runnable {
 		}
 	}
 
-	double playerX = playerStartX;
-	double playerY = playerStartY;
-
 	private void tick() {
 		input.tick();
 
@@ -182,7 +187,7 @@ public class Game extends Canvas implements Runnable {
 		screen.sync(pixels);
 
 		Graphics g = bs.getDrawGraphics();
-		g.drawImage(image, 0, 0, width * scale, height * scale, null);
+		g.drawImage(image, 0, 0, width, height, null);
 		bs.show();
 		g.dispose();
 
@@ -202,7 +207,7 @@ public class Game extends Canvas implements Runnable {
 	}
 
 	private void create3d() {
-		Game3D game = new Game3D(width, height, 2, rays, input);
+		Game3D game = new Game3D(width, height, scale, rays, input);
 		JFrame frame = new JFrame();
 		frame.add(game);
 		frame.pack();
@@ -215,8 +220,6 @@ public class Game extends Canvas implements Runnable {
 
 	}
 
-	int speed = 2;
-
 	private void movePlayer(int xDir, int yDir) {
 		double forwardAngle = Math.toRadians(camDir + 45);
 		double strafeAngle = Math.toRadians(camDir - 45);
@@ -227,8 +230,8 @@ public class Game extends Canvas implements Runnable {
 		double strafeXDir = Math.cos(strafeAngle) * xDir;
 		double strafeYDir = Math.sin(strafeAngle) * xDir;
 
-		playerX += (strafeXDir + forwardXDir) * speed;
-		playerY += (strafeYDir + forwardYDir) * speed;
+		playerX += (strafeXDir + forwardXDir) * playerSpeedFactor;
+		playerY += (strafeYDir + forwardYDir) * playerSpeedFactor;
 
 	}
 

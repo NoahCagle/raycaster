@@ -1,5 +1,8 @@
 package me.NoahCagle.yur.graphics;
 
+import me.NoahCagle.yur.logic.Intersection;
+import me.NoahCagle.yur.world.Boundary;
+
 public class Screen {
 
 	public int width, height;
@@ -55,22 +58,66 @@ public class Screen {
 			}
 		}
 	}
-	
+
 	public void fillRect(int x, int y, int w, int h, int col) {
 		for (int yp = 0; yp < h; yp++) {
 			for (int xp = 0; xp < w; xp++) {
 				int xa = x + xp;
 				int ya = (y - (h / 2)) + yp;
-				
-				if (xa < 0) xa = 0;
-				if (xa >= width) xa = width - 1;
-				if (ya < 0) ya = 0;
-				if (ya >= height) ya = height - 1;
-				
+
+				if (xa < 0)
+					xa = 0;
+				if (xa >= width)
+					xa = width - 1;
+				if (ya < 0)
+					ya = 0;
+				if (ya >= height)
+					ya = height - 1;
+
 				pixels[xa + ya * width] = col;
-				
+
 			}
 		}
+	}
+
+	public void drawTexturedColumn(int x, int y, int w, int h, Intersection intersection, Texture texture, double distance) {
+		for (int yp = 0; yp < h; yp++) {
+			for (int xp = 0; xp < w; xp++) {
+				int xa = x + xp;
+				int ya = (y - (h / 2)) + yp;
+
+				if (xa < 0)
+					xa = 0;
+				if (xa >= width)
+					xa = width - 1;
+				if (ya < 0)
+					ya = 0;
+				if (ya >= height)
+					ya = height - 1;
+
+				Boundary b = intersection.getBoundary();
+
+				double relativeX = ((double) (b.isVertical() ? intersection.getPoint().getY() - b.startY
+						: intersection.getPoint().getX() - b.startX)) / (double) b.length;
+				double relativeY = (double) yp / (double) h;
+
+				pixels[xa + ya * width] = adjustColorValue(texture.colorAt(relativeX, relativeY), distance);
+
+			}
+		}
+	}
+	
+	private int adjustColorValue(int col, double brightness) {
+		int r = (col >> 16) & 0xff;
+		int g = (col >> 8) & 0xff;
+		int b = col & 0xff;
+
+		r = (int) (r * brightness);
+		g = (int) (g * brightness);
+		b = (int) (b * brightness);
+
+		return (0xff << 24) | (r << 16) | (g << 8) | b;
+
 	}
 
 	public void clear() {

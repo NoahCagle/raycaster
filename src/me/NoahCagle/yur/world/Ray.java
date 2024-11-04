@@ -17,7 +17,7 @@ public class Ray {
 	private double angle;
 	private int camDir;
 
-	public static int rayLength = 1000;
+	public static int rayLength = 1500;
 
 	private Intersection intersection;
 
@@ -149,7 +149,6 @@ public class Ray {
 		int py = playerY - (Game.height / 2);
 		if (intersecting) {
 			screen.drawLine(x - px, y - py, intersection.getPoint().getX() - px, intersection.getPoint().getY() - py, 0xff0000);
-			//screen.drawPoint(intersection.getPoint().getX(), intersection.getPoint().getY(), 0x0000ff);
 		} else {
 			screen.drawLine(x - px, y - py, (int) (x + endX) - px, (int) (y + endY) - py, 0xff0000);
 		}

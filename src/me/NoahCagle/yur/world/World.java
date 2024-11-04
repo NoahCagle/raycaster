@@ -8,14 +8,19 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import me.NoahCagle.yur.Game;
+import me.NoahCagle.yur.graphics.Texture;
+
 public class World {
 
 	private List<Block> blocks = new ArrayList<Block>();
 	private int mapWidth, mapHeight;
 
 	private int[] blockPixels;
-	
-	public static int blockSize = 64;
+
+	// blockSize = Game.height such that the maximum height of a block is equal to
+	// the maximum width of a block
+	public static int blockSize = Game.height;
 
 	public World() {
 		generateWorld();
@@ -27,9 +32,11 @@ public class World {
 		for (int yp = 0; yp < mapHeight; yp++) {
 			for (int xp = 0; xp < mapWidth; xp++) {
 				int block = blockPixels[xp + yp * mapWidth];
-				System.out.println(block);
 				if (block != -16777216) {
-					blocks.add(new Block(xp, yp, blockSize, block));
+					if (block == -1) {
+						blocks.add(new Block(xp, yp, blockSize, new Texture("res/tex/wall.png")));
+					} else
+						blocks.add(new Block(xp, yp, blockSize, block));
 				}
 			}
 		}
@@ -43,7 +50,7 @@ public class World {
 			BufferedImage mapImage = ImageIO.read(file);
 			int w = mapImage.getWidth();
 			int h = mapImage.getHeight();
-			
+
 			this.mapWidth = w;
 			this.mapHeight = h;
 
@@ -72,6 +79,14 @@ public class World {
 
 		return boundariesList;
 
+	}
+
+	public int getWidth() {
+		return mapWidth;
+	}
+
+	public int getHeight() {
+		return mapHeight;
 	}
 
 }

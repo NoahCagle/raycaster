@@ -9,6 +9,7 @@ import java.awt.image.DataBufferInt;
 
 import me.NoahCagle.yur.input.InputListener;
 import me.NoahCagle.yur.logic.Intersection;
+import me.NoahCagle.yur.world.Boundary;
 import me.NoahCagle.yur.world.Ray;
 
 public class Game3D extends Canvas {
@@ -34,7 +35,7 @@ public class Game3D extends Canvas {
 		this.rayLength = Ray.rayLength;
 		Dimension size = new Dimension(width * scale, height * scale);
 		setPreferredSize(size);
-		
+
 		addKeyListener(input);
 
 		screen = new Screen(width, height);
@@ -45,7 +46,6 @@ public class Game3D extends Canvas {
 		this.rays = rays;
 
 		quantityColumns = rays.length;
-		System.out.println(rays.length);
 		columnWidth = width / quantityColumns;
 
 	}
@@ -78,20 +78,27 @@ public class Game3D extends Canvas {
 		for (int i = 0; i < rays.length; i++) {
 			if (rays[i].isIntersecting()) {
 				Intersection intersection = rays[i].getIntersection();
-				
+
 				// Testing a different way normalize the distance
-				// Modifying distance using graph shown at https://www.desmos.com/calculator/3v0sheddk0
+				// Modifying distance using graph shown at
+				// https://www.desmos.com/calculator/3v0sheddk0
 				boolean usingGraph = false;
 				double h = h(intersection.getDistance());
-				
-				// normalizedDistance = 1 when distance = 0, and normalizedDistance = 0 when distance == rayLength (longest a ray can be)
+
+				// normalizedDistance = 1 when distance = 0, and normalizedDistance = 0 when
+				// distance == rayLength (longest a ray can be)
 				double normalizedDistance = usingGraph ? h : g(intersection.getDistance());
-				
-				int col = adjustColorValue(intersection.getBoundary().getColor(), normalizedDistance);
-				
+
 				double drawHeight = (normalizedDistance + 0.25) * height;
-				
-				screen.fillRect((i * columnWidth), height / 2, columnWidth, (int) drawHeight, col);
+
+				Boundary b = intersection.getBoundary();
+
+				if (b.hasTexture()) {
+					screen.drawTexturedColumn((i * columnWidth), height / 2, columnWidth, (int) drawHeight, intersection, b.getTexture(), normalizedDistance);
+				} else {
+					int col = adjustColorValue(b.getColor(), normalizedDistance);
+					screen.fillRect((i * columnWidth), height / 2, columnWidth, (int) drawHeight, col);
+				}
 			}
 		}
 	}
@@ -103,7 +110,7 @@ public class Game3D extends Canvas {
 	private double g(double x) {
 		return (-x / rayLength) + 1;
 	}
-	
+
 	private double h(double x) {
 		return -(g(x - rayLength / 2) / f(x - rayLength / 2)) + 0.25;
 	}
