@@ -101,7 +101,7 @@ public class Screen {
 						: intersection.getPoint().getX() - b.startX)) / (double) b.length;
 				double relativeY = (double) yp / (double) h;
 
-				pixels[xa + ya * width] = adjustColorValue(texture.colorAt(relativeX, relativeY), distance);
+				pixels[xa + ya * width] = adjustColorValue(texture.colorAt(relativeX, relativeY), (distance - .25 < 0 ? 0 : distance - .25));
 
 			}
 		}
@@ -122,6 +122,8 @@ public class Screen {
 
 	public void clear() {
 		for (int i = 0; i < pixels.length; i++) {
+//			if (i > pixels.length / 2) pixels[i] = 0x003300;
+//			else pixels[i] = 0x0063aa;
 			pixels[i] = 0;
 		}
 	}

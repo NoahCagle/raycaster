@@ -17,7 +17,9 @@ public class Ray {
 	private double angle;
 	private int camDir;
 
-	public static int rayLength = 1500;
+	private int renderSizeDecreaseFactor = 3;
+
+	public static int rayLength = 10000;
 
 	private Intersection intersection;
 
@@ -30,7 +32,7 @@ public class Ray {
 	}
 
 	private void setVectorDirection() {
-		double radians = Math.toRadians(angle + camDir);
+		double radians = Math.toRadians(angle);
 
 		double xDir = Math.cos(radians);
 		double yDir = Math.sin(radians);
@@ -40,8 +42,14 @@ public class Ray {
 
 	}
 
-	public void setCamDir(int camDir) {
-		this.camDir = camDir;
+	public void setCamDir(int newCamDir) {
+		int deltaCamDir = newCamDir - camDir;
+		camDir += deltaCamDir;
+		angle += deltaCamDir;
+		if (camDir > 360)
+			camDir = 0;
+		if (camDir < 0)
+			camDir = 360;
 		setVectorDirection();
 	}
 
@@ -91,11 +99,11 @@ public class Ray {
 				double a = x - i.getPoint().getX();
 				double b = y - i.getPoint().getY();
 				double c = Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
-				double dist = c;
-				
+				double dist = c * Math.cos(Math.toRadians(angle - camDir));
+
 				i.setDistance(dist);
 				intersection = i;
-				
+
 			} else {
 				intersection = findClosest(intersections);
 			}
@@ -122,8 +130,9 @@ public class Ray {
 			double a = x - i.getPoint().getX();
 			double b = y - i.getPoint().getY();
 			double c = Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
-			double dist = c;
-			
+			boolean fishbowl = false;
+			double dist = fishbowl ? c : c * Math.cos(Math.toRadians(angle - camDir));
+
 			if (ret != null) {
 				if (dist < tempDistance) {
 					ret = i;
@@ -144,13 +153,16 @@ public class Ray {
 		return intersecting;
 	}
 
-	public void draw(Screen screen, int playerX, int playerY) {
-		int px = playerX - (Game.width / 2);
-		int py = playerY - (Game.height / 2);
+	public void draw(Screen screen, int playerX, int playerY, int col) {
+		int px = playerX - (Game.width / 2) * Game.reduction2d;
+		int py = playerY - (Game.height / 2) * Game.reduction2d;
 		if (intersecting) {
-			screen.drawLine(x - px, y - py, intersection.getPoint().getX() - px, intersection.getPoint().getY() - py, 0xff0000);
+			screen.drawLine((x - px) / Game.reduction2d, (y - py) / Game.reduction2d,
+					(intersection.getPoint().getX() - px) / Game.reduction2d,
+					(intersection.getPoint().getY() - py) / Game.reduction2d, col);
 		} else {
-			screen.drawLine(x - px, y - py, (int) (x + endX) - px, (int) (y + endY) - py, 0xff0000);
+			screen.drawLine((x - px) / Game.reduction2d, (y - py) / Game.reduction2d,
+					((int) (x + endX) - px) / Game.reduction2d, ((int) (y + endY) - py) / Game.reduction2d, col);
 		}
 
 	}

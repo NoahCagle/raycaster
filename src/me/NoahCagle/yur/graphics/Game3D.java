@@ -7,6 +7,7 @@ import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 
+import me.NoahCagle.yur.Game;
 import me.NoahCagle.yur.input.InputListener;
 import me.NoahCagle.yur.logic.Intersection;
 import me.NoahCagle.yur.world.Boundary;
@@ -88,13 +89,14 @@ public class Game3D extends Canvas {
 				// normalizedDistance = 1 when distance = 0, and normalizedDistance = 0 when
 				// distance == rayLength (longest a ray can be)
 				double normalizedDistance = usingGraph ? h : g(intersection.getDistance());
+				double brightness = b(intersection.getDistance());
 
-				double drawHeight = (normalizedDistance + 0.25) * height;
+				double drawHeight = (normalizedDistance) * height;
 
 				Boundary b = intersection.getBoundary();
 
 				if (b.hasTexture()) {
-					screen.drawTexturedColumn((i * columnWidth), height / 2, columnWidth, (int) drawHeight, intersection, b.getTexture(), normalizedDistance);
+					screen.drawTexturedColumn((i * columnWidth), height / 2, columnWidth, (int) drawHeight, intersection, b.getTexture(), brightness);
 				} else {
 					int col = adjustColorValue(b.getColor(), normalizedDistance);
 					screen.fillRect((i * columnWidth), height / 2, columnWidth, (int) drawHeight, col);
@@ -109,6 +111,14 @@ public class Game3D extends Canvas {
 
 	private double g(double x) {
 		return (-x / rayLength) + 1;
+	}
+	
+	// attempt at using inverse square law for brightness
+	private double b(double x) {
+//		double sq = x * x;
+//		double hSq = Game.height * Game.height;
+//		return (sq / hSq) + 1;
+		return g(x);
 	}
 
 	private double h(double x) {

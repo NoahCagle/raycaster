@@ -22,6 +22,7 @@ public class Game extends Canvas implements Runnable {
 	public static int width = 320;
 	public static int height = 320;
 	public int scale = 2;
+	public static int reduction2d = 18;
 
 	private boolean running = false;
 	private Thread thread;
@@ -34,17 +35,20 @@ public class Game extends Canvas implements Runnable {
 	private Ray[] rays;
 	private World world;
 
-	private int camDir = 250;
+	private int fov = 60;
+	private int camDir = fov / 2;
 	private double playerX, playerY;
 	private int playerStartX, playerStartY;
-	private int playerSpeedFactor = 3;
+	private int playerSpeedFactor = 5;
+
+	private Ray camRay;
 
 	private InputListener input;
 
 	private Game3D game3D;
 
 	public Game() {
-		Dimension size = new Dimension(width, height);
+		Dimension size = new Dimension(width * scale, height * scale);
 		setPreferredSize(size);
 
 		screen = new Screen(width, height);
@@ -57,13 +61,12 @@ public class Game extends Canvas implements Runnable {
 
 		playerStartX = (world.getWidth() * World.blockSize) / 2;
 		playerStartY = (world.getHeight() * World.blockSize) / 2;
-		
+
 		playerX = playerStartX;
 		playerY = playerStartY;
-		
+
 		System.out.println(playerStartX);
 
-		int fov = 45;
 		// One ray for each pixel width
 		double numRays = width;
 
@@ -73,6 +76,8 @@ public class Game extends Canvas implements Runnable {
 		for (int i = 0; i < rays.length; i++) {
 			rays[(int) i] = new Ray(playerStartX, playerStartY, i * angleInterval, camDir);
 		}
+
+		camRay = new Ray(playerStartX, playerStartY, camDir, camDir);
 
 		create3d();
 
@@ -161,6 +166,9 @@ public class Game extends Canvas implements Runnable {
 			r.setCamDir(camDir);
 		}
 
+		camRay.setOrigin((int) playerX, (int) playerY);
+		camRay.setCamDir(camDir);
+
 		if (game3D != null)
 			game3D.tick();
 
@@ -176,9 +184,11 @@ public class Game extends Canvas implements Runnable {
 		screen.clear();
 
 		for (Ray r : rays) {
-			r.draw(screen, (int) playerX, (int) playerY);
+			r.draw(screen, (int) playerX, (int) playerY, 0xff0000);
 			r.detectIntersection(world.getBoundaries());
 		}
+
+		camRay.draw(screen, (int) playerX, (int) playerY, 0x00ff00);
 
 		for (Boundary b : world.getBoundaries()) {
 			b.draw(screen, (int) playerX, (int) playerY);
@@ -187,7 +197,7 @@ public class Game extends Canvas implements Runnable {
 		screen.sync(pixels);
 
 		Graphics g = bs.getDrawGraphics();
-		g.drawImage(image, 0, 0, width, height, null);
+		g.drawImage(image, 0, 0, getPreferredSize().width, getPreferredSize().height, null);
 		bs.show();
 		g.dispose();
 
@@ -221,8 +231,8 @@ public class Game extends Canvas implements Runnable {
 	}
 
 	private void movePlayer(int xDir, int yDir) {
-		double forwardAngle = Math.toRadians(camDir + 45);
-		double strafeAngle = Math.toRadians(camDir - 45);
+		double forwardAngle = Math.toRadians(camDir);
+		double strafeAngle = Math.toRadians(camDir - 90);
 
 		double forwardXDir = Math.cos(forwardAngle) * yDir;
 		double forwardYDir = Math.sin(forwardAngle) * yDir;
